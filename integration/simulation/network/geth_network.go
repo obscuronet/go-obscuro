@@ -112,7 +112,7 @@ func (n *networkInMemGeth) Create(params *params.SimParams, stats *stats.Stats) 
 			params.AvgBlockDuration,
 			params.AvgNetworkLatency,
 			stats,
-			true,
+			false,
 			n.gethNetwork.GenesisJSON,
 			params.NodeEthWallets[i],
 			params.MgmtContractBlkHash,
