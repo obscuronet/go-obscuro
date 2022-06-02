@@ -7,11 +7,11 @@ import (
 func RandomRollup() nodecommon.Rollup {
 	return nodecommon.Rollup{
 		Header: &nodecommon.Header{
-			ParentHash:  randomHash(),
+			ParentHash:  RandomHash(),
 			Agg:         randomAddress(),
 			Nonce:       randomUInt64(),
-			L1Proof:     randomHash(),
-			State:       randomHash(),
+			L1Proof:     RandomHash(),
+			State:       RandomHash(),
 			Number:      randomUInt64(),
 			Withdrawals: randomWithdrawals(10),
 		},

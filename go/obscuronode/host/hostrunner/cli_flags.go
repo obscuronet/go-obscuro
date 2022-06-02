@@ -50,6 +50,9 @@ const (
 	privateKeyName  = "privateKey"
 	privateKeyUsage = "The private key for the L1 node account"
 
+	contractMgmtBlkHashName  = "contractMgmtBlkHash"
+	contractMgmtBlkHashUsage = "The block hash where the contract management was deployed"
+
 	chainIDName  = "chainID"
 	chainIDUsage = "The ID of the L1 chain"
 )

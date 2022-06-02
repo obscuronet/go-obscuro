@@ -3,10 +3,13 @@ package noderunner
 import (
 	"encoding/hex"
 	"fmt"
+	"math/big"
 	"net"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/obscuronet/obscuro-playground/go/ethclient"
 
 	"github.com/obscuronet/obscuro-playground/go/obscuronode/config"
 
@@ -28,7 +31,10 @@ import (
 const (
 	testLogs            = "../.build/noderunner/"
 	defaultWsPortOffset = 100
+	localhost           = "localhost"
 )
+
+var defaultL1ConnectionTimeout = 30 * time.Second
 
 // A smoke test to check that we can stand up a standalone Obscuro host and enclave.
 func TestCanStartStandaloneObscuroHostAndEnclave(t *testing.T) {
@@ -51,6 +57,8 @@ func TestCanStartStandaloneObscuroHostAndEnclave(t *testing.T) {
 	hostConfig.EnclaveRPCAddress = enclaveAddr
 	hostConfig.ClientRPCAddress = clientServerAddr
 	hostConfig.L1NodeWebsocketPort = uint(gethWebsocketPort)
+	hostConfig.L1NodeHost = localhost
+	hostConfig.L1ConnectionTimeout = defaultL1ConnectionTimeout
 
 	enclaveConfig := config.DefaultEnclaveConfig()
 	enclaveConfig.Address = enclaveAddr
@@ -61,6 +69,21 @@ func TestCanStartStandaloneObscuroHostAndEnclave(t *testing.T) {
 	}
 	network := gethnetwork.NewGethNetwork(int(gethPort), int(gethWebsocketPort), gethBinaryPath, 1, 1, []string{address.String()})
 	defer network.StopNodes()
+
+	// for this test use the first block as the ContractMgmtBlkHash
+	// (don't actually deploy the contract)
+	client, err := ethclient.NewEthClient(hostConfig)
+	if err != nil {
+		t.Error(err)
+	}
+
+	blk, err := client.BlockByNumber(big.NewInt(0))
+	if err != nil {
+		t.Error(err)
+	}
+
+	fakeManagementBlkHash := blk.Hash()
+	hostConfig.ContractMgmtBlkHash = &fakeManagementBlkHash
 
 	go enclaverunner.RunEnclave(enclaveConfig)
 	go hostrunner.RunHost(hostConfig)

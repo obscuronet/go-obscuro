@@ -113,11 +113,11 @@ func (n *basicNetworkOfNodesWithDockerEnclave) Create(params *params.SimParams, 
 		panic(err)
 	}
 
-	mgmtContractAddr, err := DeployContract(tmpEthClient, n.workerWallet, common.Hex2Bytes(mgmtcontractlib.MgmtContractByteCode))
+	mgmtContractBlkHash, mgmtContractAddr, err := DeployContract(tmpEthClient, n.workerWallet, common.Hex2Bytes(mgmtcontractlib.MgmtContractByteCode))
 	if err != nil {
 		panic(fmt.Sprintf("failed to deploy management contract. Cause: %s", err))
 	}
-	erc20ContractAddr, err := DeployContract(tmpEthClient, n.workerWallet, common.Hex2Bytes(erc20contract.ContractByteCode))
+	_, erc20ContractAddr, err := DeployContract(tmpEthClient, n.workerWallet, common.Hex2Bytes(erc20contract.ContractByteCode))
 	if err != nil {
 		panic(fmt.Sprintf("failed to deploy ERC20 contract. Cause: %s", err))
 	}
@@ -152,6 +152,7 @@ func (n *basicNetworkOfNodesWithDockerEnclave) Create(params *params.SimParams, 
 	}
 
 	params.MgmtContractAddr = mgmtContractAddr
+	params.MgmtContractBlkHash = mgmtContractBlkHash
 	params.StableTokenContractAddr = erc20ContractAddr
 	params.MgmtContractLib = mgmtcontractlib.NewMgmtContractLib(mgmtContractAddr)
 	params.ERC20ContractLib = erc20contractlib.NewERC20ContractLib(mgmtContractAddr, erc20ContractAddr)
@@ -188,6 +189,7 @@ func (n *basicNetworkOfNodesWithDockerEnclave) Create(params *params.SimParams, 
 			rpcAddress,
 			params.NodeEthWallets[i],
 			params.MgmtContractLib,
+			params.MgmtContractBlkHash,
 		)
 		obscuroClient := obscuroclient.NewClient(rpcAddress)
 

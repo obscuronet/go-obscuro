@@ -33,6 +33,7 @@ type HostConfigToml struct {
 	LogPath                 string
 	PrivateKey              string
 	ChainID                 big.Int
+	ContractMgmtBlkHash     string
 }
 
 // ParseConfig returns a config.HostConfig based on either the file identified by the `config` flag, or the flags with
@@ -57,6 +58,7 @@ func ParseConfig() config.HostConfig {
 	logPath := flag.String(logPathName, defaultConfig.LogPath, logPathUsage)
 	chainID := flag.Int64(chainIDName, defaultConfig.ChainID.Int64(), chainIDUsage)
 	privateKeyStr := flag.String(privateKeyName, defaultConfig.PrivateKeyString, privateKeyUsage)
+	contractMgmtBlkHash := flag.String(contractMgmtBlkHashName, defaultConfig.ContractMgmtBlkHash.Hex(), contractMgmtBlkHashUsage)
 
 	flag.Parse()
 
@@ -87,6 +89,8 @@ func ParseConfig() config.HostConfig {
 	defaultConfig.PrivateKeyString = *privateKeyStr
 	defaultConfig.LogPath = *logPath
 	defaultConfig.ChainID = *big.NewInt(*chainID)
+	contractBlkHash := common.HexToHash(*contractMgmtBlkHash)
+	defaultConfig.ContractMgmtBlkHash = &contractBlkHash
 
 	return defaultConfig
 }

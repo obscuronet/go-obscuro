@@ -55,6 +55,7 @@ func createInMemObscuroNode(
 	validateBlocks bool,
 	genesisJSON []byte,
 	ethWallet wallet.Wallet,
+	mgmtContractBlkHash *common.Hash,
 ) *host.Node {
 	obscuroInMemNetwork := simp2p.NewMockP2P(avgBlockDuration, avgNetworkLatency)
 
@@ -63,6 +64,7 @@ func createInMemObscuroNode(
 		IsGenesis:           isGenesis,
 		GossipRoundDuration: avgGossipPeriod,
 		HasClientRPC:        false,
+		ContractMgmtBlkHash: mgmtContractBlkHash,
 	}
 
 	enclaveConfig := config.EnclaveConfig{
@@ -101,6 +103,7 @@ func createSocketObscuroNode(
 	clientServerAddr string,
 	ethWallet wallet.Wallet,
 	mgmtContractLib mgmtcontractlib.MgmtContractLib,
+	mgmtContractTxHash *common.Hash,
 ) *host.Node {
 	hostConfig := config.HostConfig{
 		ID:                  common.BigToAddress(big.NewInt(id)),
@@ -113,6 +116,7 @@ func createSocketObscuroNode(
 		EnclaveRPCAddress:   enclaveAddr,
 		P2PAddress:          p2pAddr,
 		AllP2PAddresses:     peerAddrs,
+		ContractMgmtBlkHash: mgmtContractTxHash,
 	}
 
 	// create an enclave client

@@ -48,6 +48,8 @@ type HostConfig struct {
 	PrivateKeyString string
 	// The ID of the L1 chain
 	ChainID big.Int
+	// The block hash where the management contract was deployed
+	ContractMgmtBlkHash *common.Hash
 }
 
 // DefaultHostConfig returns a HostConfig with default values.
@@ -70,5 +72,6 @@ func DefaultHostConfig() HostConfig {
 		LogPath:               "host_logs.txt",
 		PrivateKeyString:      "0000000000000000000000000000000000000000000000000000000000000001",
 		ChainID:               *big.NewInt(1337),
+		ContractMgmtBlkHash:   &common.Hash{},
 	}
 }

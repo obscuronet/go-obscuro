@@ -50,7 +50,7 @@ func DeployContract(config Config) {
 	l1Wallet.SetNonce(nonce)
 
 	var contractAddress *common.Address
-	contractAddress, err = network.DeployContract(l1Client, l1Wallet, contractBytes)
+	_, contractAddress, err = network.DeployContract(l1Client, l1Wallet, contractBytes)
 	if err != nil {
 		panic(err)
 	}

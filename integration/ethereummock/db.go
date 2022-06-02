@@ -42,6 +42,10 @@ func (n *blockResolverInMem) StoreBlock(block *types.Block) bool {
 func (n *blockResolverInMem) FetchBlock(hash obscurocommon.L1RootHash) (*types.Block, bool) {
 	n.m.RLock()
 	defer n.m.RUnlock()
+	if hash.Hex() == obscurocommon.GenesisHash.Hex() {
+		return obscurocommon.GenesisBlock, true
+	}
+
 	block, f := n.blockCache[hash]
 
 	return block, f

@@ -37,6 +37,9 @@ type SimParams struct {
 	// MgmtContractAddr defines the management contract address
 	MgmtContractAddr *common.Address
 
+	// MgmtContractBlkHash defines the hash of the block where the management contract was deployed
+	MgmtContractBlkHash *common.Hash
+
 	// StableTokenContractAddr defines an erc20 contract address instance that has bee deployed
 	StableTokenContractAddr *common.Address
 

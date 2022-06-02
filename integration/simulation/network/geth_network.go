@@ -75,16 +75,17 @@ func (n *networkInMemGeth) Create(params *params.SimParams, stats *stats.Stats) 
 		panic(err)
 	}
 
-	mgmtContractAddr, err := DeployContract(tmpEthClient, n.workerWallet, common.Hex2Bytes(mgmtcontractlib.MgmtContractByteCode))
+	mgmtContractBlkHash, mgmtContractAddr, err := DeployContract(tmpEthClient, n.workerWallet, common.Hex2Bytes(mgmtcontractlib.MgmtContractByteCode))
 	if err != nil {
 		panic(fmt.Sprintf("failed to deploy management contract. Cause: %s", err))
 	}
-	erc20ContractAddr, err := DeployContract(tmpEthClient, n.workerWallet, common.Hex2Bytes(erc20contract.ContractByteCode))
+	_, erc20ContractAddr, err := DeployContract(tmpEthClient, n.workerWallet, common.Hex2Bytes(erc20contract.ContractByteCode))
 	if err != nil {
 		panic(fmt.Sprintf("failed to deploy ERC20 contract. Cause: %s", err))
 	}
 
 	params.MgmtContractAddr = mgmtContractAddr
+	params.MgmtContractBlkHash = mgmtContractBlkHash
 	params.StableTokenContractAddr = erc20ContractAddr
 	params.MgmtContractLib = mgmtcontractlib.NewMgmtContractLib(mgmtContractAddr)
 	params.ERC20ContractLib = erc20contractlib.NewERC20ContractLib(mgmtContractAddr, erc20ContractAddr)
@@ -114,6 +115,7 @@ func (n *networkInMemGeth) Create(params *params.SimParams, stats *stats.Stats) 
 			true,
 			n.gethNetwork.GenesisJSON,
 			params.NodeEthWallets[i],
+			params.MgmtContractBlkHash,
 		)
 		obscuroClient := host.NewInMemObscuroClient(agg)
 
@@ -166,7 +168,7 @@ func createEthClientConnection(id int64, port uint) ethclient.EthClient {
 	return ethnode
 }
 
-func DeployContract(workerClient ethclient.EthClient, w wallet.Wallet, contractBytes []byte) (*common.Address, error) {
+func DeployContract(workerClient ethclient.EthClient, w wallet.Wallet, contractBytes []byte) (*common.Hash, *common.Address, error) {
 	deployContractTx := types.LegacyTx{
 		Nonce:    w.GetNonceAndIncrement(),
 		GasPrice: big.NewInt(2000000000),
@@ -176,12 +178,12 @@ func DeployContract(workerClient ethclient.EthClient, w wallet.Wallet, contractB
 
 	signedTx, err := w.SignTransaction(&deployContractTx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	err = workerClient.SendTransaction(signedTx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var receipt *types.Receipt
@@ -189,7 +191,7 @@ func DeployContract(workerClient ethclient.EthClient, w wallet.Wallet, contractB
 		receipt, err = workerClient.TransactionReceipt(signedTx.Hash())
 		if err == nil && receipt != nil {
 			if receipt.Status != types.ReceiptStatusSuccessful {
-				return nil, errors.New("unable to deploy contract")
+				return nil, nil, errors.New("unable to deploy contract")
 			}
 			break
 		}
@@ -198,5 +200,5 @@ func DeployContract(workerClient ethclient.EthClient, w wallet.Wallet, contractB
 	}
 
 	log.Info("Contract successfully deployed to %s", receipt.ContractAddress)
-	return &receipt.ContractAddress, nil
+	return &receipt.BlockHash, &receipt.ContractAddress, nil
 }

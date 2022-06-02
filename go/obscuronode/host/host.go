@@ -145,7 +145,12 @@ func (a *Node) Start() {
 	a.EnclaveClient.Start(latestBlock)
 
 	if a.config.IsGenesis {
-		a.initialiseProtocol(&latestBlock)
+		// the block where the protocol will be initialized upon should be available in the l1
+		blk, err := a.ethClient.BlockByHash(*a.config.ContractMgmtBlkHash)
+		if err != nil {
+			log.Panic("Unable to get Contract Management Block from the l1 node: %s ", err)
+		}
+		a.initialiseProtocol(blk.Hash())
 	}
 	// start the obscuro RPC endpoints
 	if a.clientServer != nil {
@@ -407,9 +412,9 @@ func (a *Node) storeBlockProcessingResult(result nodecommon.BlockSubmissionRespo
 }
 
 // Called only by the first enclave to bootstrap the network
-func (a *Node) initialiseProtocol(block *types.Block) obscurocommon.L2RootHash {
+func (a *Node) initialiseProtocol(blockHash common.Hash) {
 	// Create the genesis rollup and submit it to the MC
-	genesisResponse := a.EnclaveClient.ProduceGenesis(block.Hash())
+	genesisResponse := a.EnclaveClient.ProduceGenesis(blockHash)
 	nodecommon.LogWithID(
 		a.shortID,
 		"Initialising network. Genesis rollup r_%d.",
@@ -420,8 +425,6 @@ func (a *Node) initialiseProtocol(block *types.Block) obscurocommon.L2RootHash {
 	}
 
 	a.broadcastTx(a.mgmtContractLib.CreateRollup(l1tx, a.ethWallet.GetNonceAndIncrement()))
-
-	return genesisResponse.ProducedRollup.Header.ParentHash
 }
 
 func (a *Node) broadcastTx(tx types.TxData) {

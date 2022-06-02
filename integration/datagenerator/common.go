@@ -21,7 +21,7 @@ func randomBytes(length int) []byte {
 	return byteArr
 }
 
-func randomHash() common.Hash {
+func RandomHash() common.Hash {
 	return common.BytesToHash(randomBytes(32))
 }
 

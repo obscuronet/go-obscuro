@@ -136,6 +136,7 @@ func (n *networkWithAzureEnclaves) Create(params *params.SimParams, stats *stats
 			rpcAddress,
 			params.NodeEthWallets[i],
 			params.MgmtContractLib,
+			params.MgmtContractBlkHash,
 		)
 		obscuroClient := obscuroclient.NewClient(rpcAddress)
 
@@ -189,6 +190,7 @@ func (n *networkWithAzureEnclaves) Create(params *params.SimParams, stats *stats
 			rpcAddress,
 			params.NodeEthWallets[i],
 			params.MgmtContractLib,
+			params.MgmtContractBlkHash,
 		)
 		obscuroClient := obscuroclient.NewClient(rpcAddress)
 		// connect the L1 and L2 nodes
