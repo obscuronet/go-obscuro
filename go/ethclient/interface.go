@@ -22,7 +22,6 @@ type EthClient interface {
 	FetchHeadBlock() *types.Block                                            // retrieves the block at head height
 	BlocksBetween(block *types.Block, head *types.Block) []*types.Block      // returns the blocks between two blocks
 	IsBlockAncestor(block *types.Block, proof obscurocommon.L1RootHash) bool // returns if the node considers a block the ancestor
-	RPCBlockchainFeed() []*types.Block                                       // returns all blocks from genesis to head
 	BlockListener() chan *types.Header                                       // subscribes to new blocks and returns a listener with the blocks heads
 
 	Stop() // tries to cleanly stop the client and release any resources
