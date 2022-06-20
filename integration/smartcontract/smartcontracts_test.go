@@ -2,6 +2,7 @@ package smartcontract
 
 import (
 	"bytes"
+	"github.com/obscuronet/obscuro-playground/integration/smartcontract/debugwallet"
 	"math/big"
 	"testing"
 	"time"
@@ -43,8 +44,8 @@ func runGethNetwork(t *testing.T) *netInfo {
 
 	// define + run the network
 	gethNetwork := gethnetwork.NewGethNetwork(
-		integration.StartPortSmartContractTests,
-		integration.StartPortSmartContractTests+100,
+		integration.StartPortManagementContractTests,
+		integration.StartPortManagementContractTests+100,
 		path,
 		3,
 		1,
@@ -76,9 +77,9 @@ func TestManagementContract(t *testing.T) {
 
 	// setup the client and the (debug) wallet
 	client := sim.ethClients[0]
-	w := newDebugWallet(sim.wallets[0])
+	w := debugwallet.NewDebugWallet(sim.wallets[0])
 
-	for name, test := range map[string]func(*testing.T, *debugMgmtContractLib, *debugWallet, ethclient.EthClient){
+	for name, test := range map[string]func(*testing.T, *debugMgmtContractLib, *debugwallet.DebugWallet, ethclient.EthClient){
 		"secretCannotBeInitializedTwice":     secretCannotBeInitializedTwice,
 		"nonAttestedNodesCannotCreateRollup": nonAttestedNodesCannotCreateRollup,
 		"attestedNodesCreateRollup":          attestedNodesCreateRollup,
@@ -103,7 +104,7 @@ func TestManagementContract(t *testing.T) {
 }
 
 // nonAttestedNodesCannotCreateRollup issues a rollup from a node that did not receive the secret network key
-func nonAttestedNodesCannotCreateRollup(t *testing.T, mgmtContractLib *debugMgmtContractLib, w *debugWallet, client ethclient.EthClient) {
+func nonAttestedNodesCannotCreateRollup(t *testing.T, mgmtContractLib *debugMgmtContractLib, w *debugwallet.DebugWallet, client ethclient.EthClient) {
 	rollup := datagenerator.RandomRollup()
 	txData := mgmtContractLib.CreateRollup(
 		&obscurocommon.L1RollupTx{Rollup: nodecommon.EncodeRollup(&rollup)},
@@ -121,7 +122,7 @@ func nonAttestedNodesCannotCreateRollup(t *testing.T, mgmtContractLib *debugMgmt
 }
 
 // secretCannotBeInitializedTwice issues the InitializeNetworkSecret twice, failing the second time
-func secretCannotBeInitializedTwice(t *testing.T, mgmtContractLib *debugMgmtContractLib, w *debugWallet, client ethclient.EthClient) {
+func secretCannotBeInitializedTwice(t *testing.T, mgmtContractLib *debugMgmtContractLib, w *debugwallet.DebugWallet, client ethclient.EthClient) {
 	aggregatorID := datagenerator.RandomAddress()
 	txData := mgmtContractLib.CreateInitializeSecret(
 		&obscurocommon.L1InitializeSecretTx{
@@ -168,7 +169,7 @@ func secretCannotBeInitializedTwice(t *testing.T, mgmtContractLib *debugMgmtCont
 }
 
 // attestedNodesCreateRollup attests a node by issuing a InitializeNetworkSecret, issues a rollups from the same node and verifies the rollup was stored
-func attestedNodesCreateRollup(t *testing.T, mgmtContractLib *debugMgmtContractLib, w *debugWallet, client ethclient.EthClient) {
+func attestedNodesCreateRollup(t *testing.T, mgmtContractLib *debugMgmtContractLib, w *debugwallet.DebugWallet, client ethclient.EthClient) {
 	rollup := datagenerator.RandomRollup()
 	requesterID := &rollup.Header.Agg
 
@@ -215,7 +216,7 @@ func attestedNodesCreateRollup(t *testing.T, mgmtContractLib *debugMgmtContractL
 }
 
 // nonAttestedNodesCannotAttest agg A initializes the network, agg B requests the secret, agg C issues response, but it's reverted
-func nonAttestedNodesCannotAttest(t *testing.T, mgmtContractLib *debugMgmtContractLib, w *debugWallet, client ethclient.EthClient) {
+func nonAttestedNodesCannotAttest(t *testing.T, mgmtContractLib *debugMgmtContractLib, w *debugwallet.DebugWallet, client ethclient.EthClient) {
 	aggAPrivateKey, err := crypto.GenerateKey()
 	if err != nil {
 		t.Error(err)
@@ -306,7 +307,7 @@ func nonAttestedNodesCannotAttest(t *testing.T, mgmtContractLib *debugMgmtContra
 }
 
 // newlyAttestedNodesCanAttest agg A initializes the network, agg B requests the secret, agg C requests the secret, agg C is attested by agg A and agg B is attested by agg C
-func newlyAttestedNodesCanAttest(t *testing.T, mgmtContractLib *debugMgmtContractLib, w *debugWallet, client ethclient.EthClient) {
+func newlyAttestedNodesCanAttest(t *testing.T, mgmtContractLib *debugMgmtContractLib, w *debugwallet.DebugWallet, client ethclient.EthClient) {
 	secretBytes := []byte("This is super random")
 	// crypto.GenerateKey will generate a PK that does not play along this test
 	aggAPrivateKey, err := crypto.ToECDSA(hexutil.MustDecode("0xc0083389f7a5925b662f8982080ced523bcc5e5dc33c6b1eaf11e288183e3c95"))

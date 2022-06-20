@@ -129,6 +129,12 @@ func NewGethNetwork(portStart int, websocketPortStart int, gethBinaryPath string
 	// We create a data directory for each node.
 	nodesDir, err := ioutil.TempDir("", timestamp)
 	fmt.Printf("Geth nodes created in: %s\n", nodesDir)
+	fmt.Printf("Geth nodes ports: Websocket: %d - %d HTTP: %d - %d\n",
+		websocketPortStart,
+		websocketPortStart+numNodes,
+		portStart+25,
+		portStart+25+numNodes,
+	)
 	if err != nil {
 		panic(err)
 	}

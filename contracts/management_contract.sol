@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 import "libs/openzeppelin/cryptography/ECDSA.sol";
+import "libs/obscuro/rollup_chain.sol";
 
 
 pragma solidity >=0.7.0 <0.9.0;

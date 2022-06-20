@@ -84,6 +84,10 @@ func StopGethNetwork(clients []ethclient.EthClient, netw *gethnetwork.GethNetwor
 
 // DeployContract todo -this should live somewhere else
 func DeployContract(workerClient ethclient.EthClient, w wallet.Wallet, contractBytes []byte) (*common.Address, error) {
+	if len(contractBytes) == 0 {
+		return nil, fmt.Errorf("unable to deploy a 0 byte contract")
+	}
+
 	deployContractTx := types.LegacyTx{
 		Nonce:    w.GetNonceAndIncrement(),
 		GasPrice: big.NewInt(2000000000),
