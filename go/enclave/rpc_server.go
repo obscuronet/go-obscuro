@@ -167,9 +167,12 @@ func (s *server) ExecuteOffChainTransaction(_ context.Context, request *generate
 	return &generated.OffChainResponse{Result: result}, nil
 }
 
-func (s *server) Nonce(_ context.Context, request *generated.NonceRequest) (*generated.NonceResponse, error) {
-	nonce := s.enclave.Nonce(gethcommon.BytesToAddress(request.Address))
-	return &generated.NonceResponse{Nonce: nonce}, nil
+func (s *server) GetTransactionCount(_ context.Context, request *generated.GetTransactionCountRequest) (*generated.GetTransactionCountResponse, error) {
+	result, err := s.enclave.GetTransactionCount(request.EncryptedParams)
+	if err != nil {
+		return nil, err
+	}
+	return &generated.GetTransactionCountResponse{Result: result}, nil
 }
 
 func (s *server) RoundWinner(_ context.Context, request *generated.RoundWinnerRequest) (*generated.RoundWinnerResponse, error) {

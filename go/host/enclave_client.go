@@ -242,15 +242,18 @@ func (c *EnclaveRPCClient) ExecuteOffChainTransaction(encryptedParams common.Enc
 	return response.Result, nil
 }
 
-func (c *EnclaveRPCClient) Nonce(address gethcommon.Address) uint64 {
+func (c *EnclaveRPCClient) GetTransactionCount(encryptedParams common.EncryptedParamsGetTxCount) (common.EncryptedResponseGetTxCount, error) {
 	timeoutCtx, cancel := context.WithTimeout(context.Background(), c.config.EnclaveRPCTimeout)
 	defer cancel()
 
-	response, err := c.protoClient.Nonce(timeoutCtx, &generated.NonceRequest{Address: address.Bytes()})
+	response, err := c.protoClient.GetTransactionCount(timeoutCtx, &generated.GetTransactionCountRequest{EncryptedParams: encryptedParams})
 	if err != nil {
-		panic(fmt.Errorf(">   Agg%d: Failed to retrieve nonce: %w", common.ShortAddress(c.config.ID), err))
+		return nil, err
 	}
-	return response.Nonce
+	if response.Error != "" {
+		return nil, errors.New(response.Error)
+	}
+	return response.Result, nil
 }
 
 func (c *EnclaveRPCClient) RoundWinner(parent common.L2RootHash) (common.ExtRollup, bool, error) {

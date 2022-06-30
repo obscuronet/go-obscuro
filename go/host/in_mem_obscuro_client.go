@@ -96,16 +96,21 @@ func (c *inMemObscuroClient) Call(result interface{}, method string, args ...int
 		}
 		*result.(*string) = encryptedResponse
 
-	case rpcclientlib.RPCNonce:
+	case rpcclientlib.RPCGetTxCount:
 		if len(args) != 1 {
-			return fmt.Errorf("expected 1 arg to %s, got %d", rpcclientlib.RPCNonce, len(args))
+			return fmt.Errorf("expected 1 arg to %s, got %d", rpcclientlib.RPCGetTxCount, len(args))
 		}
-		address, ok := args[0].(gethcommon.Address)
+		params, ok := args[0].([]byte)
 		if !ok {
-			return fmt.Errorf("arg to %s was not of expected type common.Address", rpcclientlib.RPCNonce)
+			return fmt.Errorf("arg to %s was not of expected type common.Address", rpcclientlib.RPCGetTxCount)
 		}
 
-		*result.(*uint64) = c.obscuroAPI.Nonce(address)
+		encryptedResponse, err := c.ethAPI.GetTransactionCount(context.Background(), params)
+		if err != nil {
+			return fmt.Errorf("GetTransactionCount call failed. Cause: %w", err)
+		}
+
+		*result.(*string) = encryptedResponse
 
 	case rpcclientlib.RPCGetTxReceipt:
 		if len(args) != 1 {

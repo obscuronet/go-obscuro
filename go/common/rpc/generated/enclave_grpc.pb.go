@@ -52,8 +52,8 @@ type EnclaveProtoClient interface {
 	// ExecuteOffChainTransaction - returns the result of executing the smart contract as a user, encrypted with the
 	// viewing key corresponding to the `from` field
 	ExecuteOffChainTransaction(ctx context.Context, in *OffChainRequest, opts ...grpc.CallOption) (*OffChainResponse, error)
-	// Nonce - returns the nonce of the wallet with the given address.
-	Nonce(ctx context.Context, in *NonceRequest, opts ...grpc.CallOption) (*NonceResponse, error)
+	// GetTransactionCount - returns the nonce of the wallet with the given address.
+	GetTransactionCount(ctx context.Context, in *GetTransactionCountRequest, opts ...grpc.CallOption) (*GetTransactionCountResponse, error)
 	// RoundWinner - calculates and returns the winner for a round
 	RoundWinner(ctx context.Context, in *RoundWinnerRequest, opts ...grpc.CallOption) (*RoundWinnerResponse, error)
 	// Stop gracefully stops the enclave
@@ -197,9 +197,9 @@ func (c *enclaveProtoClient) ExecuteOffChainTransaction(ctx context.Context, in 
 	return out, nil
 }
 
-func (c *enclaveProtoClient) Nonce(ctx context.Context, in *NonceRequest, opts ...grpc.CallOption) (*NonceResponse, error) {
-	out := new(NonceResponse)
-	err := c.cc.Invoke(ctx, "/generated.EnclaveProto/Nonce", in, out, opts...)
+func (c *enclaveProtoClient) GetTransactionCount(ctx context.Context, in *GetTransactionCountRequest, opts ...grpc.CallOption) (*GetTransactionCountResponse, error) {
+	out := new(GetTransactionCountResponse)
+	err := c.cc.Invoke(ctx, "/generated.EnclaveProto/GetTransactionCount", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -303,8 +303,8 @@ type EnclaveProtoServer interface {
 	// ExecuteOffChainTransaction - returns the result of executing the smart contract as a user, encrypted with the
 	// viewing key corresponding to the `from` field
 	ExecuteOffChainTransaction(context.Context, *OffChainRequest) (*OffChainResponse, error)
-	// Nonce - returns the nonce of the wallet with the given address.
-	Nonce(context.Context, *NonceRequest) (*NonceResponse, error)
+	// GetTransactionCount - returns the nonce of the wallet with the given address.
+	GetTransactionCount(context.Context, *GetTransactionCountRequest) (*GetTransactionCountResponse, error)
 	// RoundWinner - calculates and returns the winner for a round
 	RoundWinner(context.Context, *RoundWinnerRequest) (*RoundWinnerResponse, error)
 	// Stop gracefully stops the enclave
@@ -367,8 +367,8 @@ func (UnimplementedEnclaveProtoServer) SubmitTx(context.Context, *SubmitTxReques
 func (UnimplementedEnclaveProtoServer) ExecuteOffChainTransaction(context.Context, *OffChainRequest) (*OffChainResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ExecuteOffChainTransaction not implemented")
 }
-func (UnimplementedEnclaveProtoServer) Nonce(context.Context, *NonceRequest) (*NonceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Nonce not implemented")
+func (UnimplementedEnclaveProtoServer) GetTransactionCount(context.Context, *GetTransactionCountRequest) (*GetTransactionCountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTransactionCount not implemented")
 }
 func (UnimplementedEnclaveProtoServer) RoundWinner(context.Context, *RoundWinnerRequest) (*RoundWinnerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RoundWinner not implemented")
@@ -638,20 +638,20 @@ func _EnclaveProto_ExecuteOffChainTransaction_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EnclaveProto_Nonce_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(NonceRequest)
+func _EnclaveProto_GetTransactionCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTransactionCountRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EnclaveProtoServer).Nonce(ctx, in)
+		return srv.(EnclaveProtoServer).GetTransactionCount(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/generated.EnclaveProto/Nonce",
+		FullMethod: "/generated.EnclaveProto/GetTransactionCount",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EnclaveProtoServer).Nonce(ctx, req.(*NonceRequest))
+		return srv.(EnclaveProtoServer).GetTransactionCount(ctx, req.(*GetTransactionCountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -842,8 +842,8 @@ var EnclaveProto_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _EnclaveProto_ExecuteOffChainTransaction_Handler,
 		},
 		{
-			MethodName: "Nonce",
-			Handler:    _EnclaveProto_Nonce_Handler,
+			MethodName: "GetTransactionCount",
+			Handler:    _EnclaveProto_GetTransactionCount_Handler,
 		},
 		{
 			MethodName: "RoundWinner",

@@ -29,9 +29,11 @@ type (
 	EncryptedParamsGetBalance     []byte // The params for an RPC getBalance request, as a JSON object encrypted with the public key of the enclave.
 	EncryptedParamsCall           []byte // As above, but for an RPC call request.
 	EncryptedParamsGetTxReceipt   []byte // As above, but for an RPC getTransactionReceipt request.
+	EncryptedParamsGetTxCount     []byte // As above, but for an RPC getTransactionCount request.
 	EncryptedResponseGetBalance   []byte // The response for an RPC getBalance request, as a JSON object encrypted with the viewing key of the user.
 	EncryptedResponseCall         []byte // As above, but for an RPC call request.
 	EncryptedResponseGetTxReceipt []byte // As above, but for an RPC getTransactionReceipt request.
+	EncryptedResponseGetTxCount   []byte // As above, but for an RPC getTransactionCount request.
 
 	Nonce         = uint64
 	EncodedRollup []byte
