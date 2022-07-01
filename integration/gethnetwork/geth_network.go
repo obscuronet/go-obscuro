@@ -19,9 +19,10 @@ import (
 )
 
 const (
-	nodeFolderName = "node_datadir_"
-	buildDirBase   = "../.build/geth"
-	keystoreDir    = "keystore"
+	nodeFolderName     = "node_datadir_"
+	buildDirBase       = "../.build/geth"
+	buildDirGoerliBase = "../.build/geth/goerli"
+	keystoreDir        = "keystore"
 
 	genesisFileName = "genesis.json"
 	ipcFileName     = "geth.ipc"
@@ -263,7 +264,7 @@ func (network *GethNetwork) StopNodes() {
 			wg.Add(1)
 			go func(process *os.Process) {
 				defer wg.Done()
-				err := process.Kill()
+				err := process.Signal(os.Interrupt)
 				if err != nil {
 					log.Error("geth node could not be killed: %s", err)
 				}
@@ -387,7 +388,7 @@ func waitForIPC(dataDir string) {
 		}
 		time.Sleep(100 * time.Millisecond)
 
-		if totalCounter > 300 {
+		if totalCounter > 30000 {
 			panic(fmt.Errorf("waited over 30 seconds for .ipc file of node at %s", dataDir))
 		}
 

@@ -164,3 +164,37 @@ func TestGethTransactionIsMintedOverRPC(t *testing.T) {
 		t.Fatalf("Did not minted/mined the tx correctly - receipt: %+v", receipt)
 	}
 }
+
+func TestGethGoerliConnection(t *testing.T) {
+	gethBinaryPath, err := EnsureBinariesExist(LatestVersion)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// wallet should be prefunded
+	startPort := int(integration.StartPortGethNetworkTest) + numNodes*3
+	network := NewGethNetworkGoerli(startPort, startPort+defaultWsPortOffset, gethBinaryPath, numNodes)
+
+	client, err := ethclient.NewEthClient(config.HostConfig{
+		L1NodeHost:          "127.0.0.1",
+		L1NodeWebsocketPort: network.WebSocketPorts[0],
+		L1ConnectionTimeout: 30 * time.Second,
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	timeout := 20 * time.Minute
+	var blk *types.Block
+	for startTime := time.Now(); time.Since(startTime) < timeout; time.Sleep(time.Second) {
+		blk, err = client.BlockByNumber(nil)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("Block %s at Number: %d - after %s\n", blk.Hash(), blk.NumberU64(), time.Since(startTime))
+	}
+	if blk == nil || blk.NumberU64() == 0 {
+		t.Fatal("unable to connect to goerli")
+	}
+}
