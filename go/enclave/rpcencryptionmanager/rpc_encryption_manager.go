@@ -126,6 +126,22 @@ func (rpc *RPCEncryptionManager) ExtractTxHash(encryptedParams common.EncryptedP
 	return txHash, err
 }
 
+// ExtractAddress - Returns the address from a common.EncryptedParamsGetTransactionCount blob
+func (rpc *RPCEncryptionManager) ExtractAddress(encryptedParams common.EncryptedParamsGetTxCount) (gethcommon.Address, error) {
+	paramBytes, err := rpc.DecryptRPCCall(encryptedParams)
+	if err != nil {
+		return gethcommon.Address{}, fmt.Errorf("could not decrypt params in eth_getTransactionCount request. Cause: %w", err)
+	}
+
+	var paramsJSONList []string
+	err = json.Unmarshal(paramBytes, &paramsJSONList)
+	if err != nil {
+		return gethcommon.Address{}, fmt.Errorf("could not parse JSON params in eth_getTransactionCount request. Cause: %w", err)
+	}
+	txHash := gethcommon.HexToAddress(paramsJSONList[0]) // The only argument is the transaction hash.
+	return txHash, err
+}
+
 // Marshalls the transaction receipt to JSON, and encrypts it with a viewing key for the address.
 func (rpc *RPCEncryptionManager) EncryptTxReceiptWithViewingKey(address gethcommon.Address, txReceipt *types.Receipt) ([]byte, error) {
 	txReceiptBytes, err := txReceipt.MarshalJSON()

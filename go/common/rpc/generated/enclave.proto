@@ -48,8 +48,8 @@ service EnclaveProto {
   // viewing key corresponding to the `from` field
   rpc ExecuteOffChainTransaction(OffChainRequest) returns (OffChainResponse) {}
 
-  // Nonce - returns the nonce of the wallet with the given address.
-  rpc Nonce(NonceRequest) returns (NonceResponse) {}
+  // GetTransactionCount - returns the nonce of the wallet with the given address.
+  rpc GetTransactionCount(GetTransactionCountRequest) returns (GetTransactionCountResponse) {}
 
   // RoundWinner - calculates and returns the winner for a round
   rpc RoundWinner(RoundWinnerRequest) returns (RoundWinnerResponse) {}
@@ -154,11 +154,12 @@ message OffChainResponse {
   string error = 2;
 }
 
-message NonceRequest {
-  bytes address = 1;
+message GetTransactionCountRequest {
+  bytes encryptedParams = 1;
 }
-message NonceResponse {
-  uint64 nonce = 1;
+message GetTransactionCountResponse {
+  bytes result = 1;
+  string error = 2;
 }
 
 message RoundWinnerRequest {

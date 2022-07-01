@@ -52,11 +52,6 @@ func (api *ObscuroAPI) GetTransaction(hash gethcommon.Hash) *common.L2Tx {
 	return api.host.EnclaveClient.GetTransaction(hash)
 }
 
-// Nonce returns the nonce of the wallet with the given address.
-func (api *ObscuroAPI) Nonce(address gethcommon.Address) uint64 {
-	return api.host.EnclaveClient.Nonce(address)
-}
-
 // AddViewingKey stores the viewing key on the enclave.
 func (api *ObscuroAPI) AddViewingKey(viewingKeyBytes []byte, signature []byte) error {
 	return api.host.EnclaveClient.AddViewingKey(viewingKeyBytes, signature)

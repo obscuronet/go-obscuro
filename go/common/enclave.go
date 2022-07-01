@@ -50,8 +50,8 @@ type Enclave interface {
 	// Todo - return the result with a block delay. To prevent frontrunning.
 	ExecuteOffChainTransaction(encryptedParams EncryptedParamsCall) (EncryptedResponseCall, error)
 
-	// Nonce returns the nonce of the wallet with the given address.
-	Nonce(address gethcommon.Address) uint64
+	// GetTxCount returns the nonce of the wallet with the given (encrypted) address.
+	GetTransactionCount(encryptedParams EncryptedParamsGetTxCount) (EncryptedResponseGetTxCount, error)
 
 	// RoundWinner - calculates and returns the winner for a round, and whether this node is the winner
 	RoundWinner(parent L2RootHash) (ExtRollup, bool, error)

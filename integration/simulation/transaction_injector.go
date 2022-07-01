@@ -2,11 +2,14 @@ package simulation
 
 import (
 	cryptorand "crypto/rand"
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"math/rand"
 	"sync/atomic"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common/hexutil"
 
 	"github.com/obscuronet/obscuro-playground/go/common/log"
 
@@ -393,12 +396,24 @@ func (ti *TransactionInjector) newTx(data []byte, nonce uint64) types.TxData {
 }
 
 func readNonce(cl rpcclientlib.Client, a gethcommon.Address) uint64 {
-	var result uint64
-	err := cl.Call(&result, rpcclientlib.RPCNonce, a)
+	reqParams := []string{a.String()}
+
+	jsonParams, err := json.Marshal(reqParams)
 	if err != nil {
 		panic(err)
 	}
-	return result
+
+	// we don't encode the parameter here as currently the enclave supports unencrypted communication, and we haven't set up a viewing key
+	var result string
+	err = cl.Call(&result, rpcclientlib.RPCGetTxCount, jsonParams)
+	if err != nil {
+		panic(err)
+	}
+	nonce, err := hexutil.DecodeUint64(result)
+	if err != nil {
+		panic(err)
+	}
+	return nonce
 }
 
 func NextNonce(cl rpcclientlib.Client, w wallet.Wallet) uint64 {
