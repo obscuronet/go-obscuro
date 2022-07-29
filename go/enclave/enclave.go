@@ -334,10 +334,7 @@ func (e *enclaveImpl) GetTransaction(encryptedParams common.EncryptedParamsGetTx
 	txHash := gethcommon.HexToHash(paramList[0])
 
 	// Unlike in the Geth impl, we do not try and retrieve unconfirmed transactions from the mempool.
-	tx, blockHash, blockNumber, index, err := e.storage.GetTransaction(txHash)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve transaction. Cause: %w", err)
-	}
+	tx, blockHash, blockNumber, index := e.storage.GetTransaction(txHash)
 
 	if tx == nil {
 		// If there's no transaction, there's no `from` field we can use to determine which key to use to encrypt the response.
@@ -363,11 +360,17 @@ func (e *enclaveImpl) GetTransactionReceipt(encryptedParams common.EncryptedPara
 
 	viewingKeyAddress, err := e.storage.GetSender(txHash)
 	if err != nil {
+		if errors.Is(err, db.ErrTxNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
 	txReceipt, err := e.storage.GetTransactionReceipt(txHash)
 	if err != nil {
+		if errors.Is(err, db.ErrTxNotFound) {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("could not retrieve transaction receipt in eth_getTransactionReceipt request. Cause: %w", err)
 	}
 

@@ -74,7 +74,7 @@ type TransactionStorage interface {
 	GetReceiptsByHash(hash gethcommon.Hash) types.Receipts
 
 	// GetTransaction - returns the positional metadata of the tx by hash
-	GetTransaction(txHash gethcommon.Hash) (*types.Transaction, gethcommon.Hash, uint64, uint64, error)
+	GetTransaction(txHash gethcommon.Hash) (*types.Transaction, gethcommon.Hash, uint64, uint64)
 
 	// GetTransactionReceipt - returns the receipt of a tx by tx hash
 	GetTransactionReceipt(txHash gethcommon.Hash) (*types.Receipt, error)

@@ -72,12 +72,16 @@ func (api *EthereumAPI) Call(_ context.Context, encryptedParams common.Encrypted
 
 // GetTransactionReceipt returns the transaction receipt for the given transaction hash, encrypted with the viewing key
 // corresponding to the original transaction submitter and encoded as hex.
-func (api *EthereumAPI) GetTransactionReceipt(_ context.Context, encryptedParams common.EncryptedParamsGetTxReceipt) (string, error) {
+func (api *EthereumAPI) GetTransactionReceipt(_ context.Context, encryptedParams common.EncryptedParamsGetTxReceipt) (*string, error) {
 	encryptedResponse, err := api.host.EnclaveClient.GetTransactionReceipt(encryptedParams)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return gethcommon.Bytes2Hex(encryptedResponse), nil
+	if encryptedResponse == nil {
+		return nil, err
+	}
+	encryptedResponseHex := gethcommon.Bytes2Hex(encryptedResponse)
+	return &encryptedResponseHex, nil
 }
 
 // EstimateGas is a placeholder for an RPC method required by MetaMask/Remix.

@@ -313,6 +313,7 @@ func (c *EnclaveRPCClient) GetTransactionReceipt(encryptedParams common.Encrypte
 	if err != nil {
 		return nil, err
 	}
+
 	return response.EncryptedTxReceipt, nil
 }
 

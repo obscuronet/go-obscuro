@@ -160,7 +160,7 @@ func (c *inMemObscuroClient) getTransactionReceipt(result interface{}, args []in
 	if err != nil {
 		return fmt.Errorf("`obscuro_getTransactionReceipt` call failed. Cause: %w", err)
 	}
-	*result.(*string) = encryptedResponse
+	*result.(*string) = *encryptedResponse
 	return nil
 }
 
