@@ -167,17 +167,7 @@ func (c *networkClient) encryptParamBytes(params []byte) ([]byte, error) {
 
 func (c *networkClient) decryptResponse(resultBlob interface{}) ([]byte, error) {
 	if c.viewingPrivKey == nil {
-		// todo: remove this non-decryption part when we make viewing key encryption mandatory across all tests
-		// extract result from the data as-is, in case we can't decrypt/process it below
-		unencrypted, ok := resultBlob.([]byte) // if viewing key was nil we try and extract result from the data as-is
-		if !ok {
-			decStr, ok := resultBlob.(string)
-			if ok {
-				unencrypted = []byte(decStr)
-			}
-		}
-		// todo: remove this when we no longer support disabling viewing keys for testing
-		return unencrypted, nil
+		return nil, fmt.Errorf("cannot decrypt response, viewing key has not been setup")
 	}
 	resultStr, ok := resultBlob.(string)
 	if !ok {
