@@ -53,10 +53,12 @@ jobs:
           ./testnet/testnet-deploy-contracts.sh --l1host=${{ github.event.inputs.L1HOST }} --pkstring=${{ secrets.GETHNETWORK_PREFUNDED_PKSTR_WORKER }}
           source ./testnet/.env
           echo "MGMTCONTRACTADDR=$MGMTCONTRACTADDR" >> $GITHUB_ENV
-          echo "ERC20CONTRACTADDR=ERC20CONTRACTADDR" >> $GITHUB_ENV
-          echo "Contracts deployed to $MGMTCONTRACTADDR and $ERC20CONTRACTADDR"
+          echo "OBXERC20ADDR=OBXERC20ADDR" >> $GITHUB_ENV
+          echo "ETHERC20ADDR=ETHERC20ADDR" >> $GITHUB_ENV
+          echo "Contracts deployed to $MGMTCONTRACTADDR and $OBXERC20ADDR and $ETHERC20ADDR"
           echo "::set-output name=mgmtContractAddr::$MGMTCONTRACTADDR"
-          echo "::set-output name=erc20ContractAddr::$ERC20CONTRACTADDR"    
+          echo "::set-output name=obxErc20Addr::OBXERC20ADDR"   
+          echo "::set-output name=ethErc20Addr::ETHERC20ADDR"    
 
       # This will fail some deletions due to resource dependencies ( ie. you must first delete the vm before deleting the disk)
       - name: 'Delete deployed VMs'
@@ -78,7 +80,7 @@ jobs:
 
     strategy:
       matrix:
-        host_id: [0,1,2]
+        host_id: [ 0,1,2 ]
         include:
           # Hardcoded host addresses
           - host_addr: 0x0000000000000000000000000000000000000000
@@ -179,7 +181,8 @@ jobs:
                --host_id=${{ matrix.host_addr }} \
                --l1host=${{ github.event.inputs.L1HOST }} \
                --mgmtcontractaddr=${{needs.build.outputs.mgmtContractAddr}} \
-               --erc20contractaddr=${{needs.build.outputs.erc20ContractAddr}} \
+               --obxerc20addr=${{needs.build.outputs.obxErc20Addr}} \
+               --etherc20addr=${{needs.build.outputs.ethErc20Addr}} \
                --pkaddr=${{ secrets[matrix.node_pk_addr] }} \
                --pkstring=${{ secrets[matrix.node_pk_str] }} \
                --p2p_public_address=obscuronode-${{ matrix.host_id }}-testnet-${{ GITHUB.RUN_NUMBER }}.uksouth.cloudapp.azure.com:10000'
@@ -209,3 +212,15 @@ jobs:
               --nic-name ObscuroNodeTestnet-0-${{ GITHUB.RUN_NUMBER }}VMNic \
               --resource-group Testnet \
               --lb-name testnet-loadbalancer
+
+  setup:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: 'Deploy L2 contracts'
+        id: deployL2Contracts
+        shell: bash
+        run: |
+          ./testnet/testnet-deploy-l2-contracts.sh --l2host=ObscuroNodeTestnet-0-${{ GITHUB.RUN_NUMBER }}

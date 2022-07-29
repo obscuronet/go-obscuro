@@ -61,6 +61,7 @@ docker run --name=mgmtcontractdeployer \
      testnetobscuronet.azurecr.io/obscuronet/obscuro_contractdeployer:latest \
     --nodeHost=${l1host} \
     --nodePort=${l1port} \
+    --l1Deployment \
     --contractName="MGMT" \
     --privateKey=${pkstring}
 # storing the contract address to the .env file (note: this first contract creates/overwrites the .env file)
@@ -68,17 +69,34 @@ mgmtContractAddr=$(docker logs --tail 1 mgmtcontractdeployer)
 echo "MGMTCONTRACTADDR=${mgmtContractAddr}" > "${testnet_path}/.env"
 echo ""
 
-# deploy ERC20 contract
-echo "Deploying ERC20 contract to L1 network"
-docker run --name=erc20deployer \
+# deploy OBX ERC20 contract
+echo "Deploying OBX ERC20 contract to L1 network"
+docker run --name=obxerc20deployer \
     --network=node_network \
     --entrypoint /home/go-obscuro/tools/contractdeployer/main/main \
      testnetobscuronet.azurecr.io/obscuronet/obscuro_contractdeployer:latest \
     --nodeHost=${l1host} \
     --nodePort=${l1port} \
+    --l1Deployment \
     --contractName="ERC20" \
     --privateKey=${pkstring}
 # storing the contract address to the .env file
-erc20ContractAddr=$(docker logs --tail 1 erc20deployer)
-echo "ERC20CONTRACTADDR=${erc20ContractAddr}" >> "${testnet_path}/.env"
+obxAddr=$(docker logs --tail 1 obxerc20deployer)
+echo "OBXERC20ADDR=${obxAddr}" >> "${testnet_path}/.env"
+echo ""
+
+# deploy ETH ERC20 contract
+echo "Deploying ETH ERC20 contract to L1 network"
+docker run --name=etherc20deployer \
+    --network=node_network \
+    --entrypoint /home/go-obscuro/tools/contractdeployer/main/main \
+     testnetobscuronet.azurecr.io/obscuronet/obscuro_contractdeployer:latest \
+    --nodeHost=${l1host} \
+    --nodePort=${l1port} \
+    --l1Deployment \
+    --contractName="ERC20" \
+    --privateKey=${pkstring}
+# storing the contract address to the .env file
+ethAddr=$(docker logs --tail 1 etherc20deployer)
+echo "ETHERC20ADDR=${ethAddr}" >> "${testnet_path}/.env"
 echo ""

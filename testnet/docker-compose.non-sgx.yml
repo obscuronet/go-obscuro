@@ -43,7 +43,8 @@ services:
       - "6060:6060"
     environment:
       MGMTCONTRACTADDR: some_address
-      ERC20CONTRACTADDR: some_address
+      OBXERC20ADDR: some_address
+      ETHERC20ADDR: some_address
       HOSTID: some_address
       PROFILERENABLED: some_bool
       P2PPUBLICADDRESS: some_string
@@ -55,7 +56,7 @@ services:
                  "--useInMemoryDB=false",
                  "--sqliteDBPath=/data/sqlite.db",
                  "--managementContractAddress=$MGMTCONTRACTADDR",
-                 "--erc20ContractAddresses=$ERC20CONTRACTADDR,$ERC20CONTRACTADDR",
+                 "--erc20ContractAddresses=$OBXERC20ADDR,$ETHERC20ADDR",
                  "--hostAddress=host:10000",
                  "--profilerEnabled=$PROFILERENABLED",
                  "--viewingKeysEnabled=true",

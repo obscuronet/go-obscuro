@@ -2,6 +2,7 @@ package contractdeployer
 
 // TODO we might merge this with the network manager package
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 	"time"
@@ -20,6 +21,8 @@ import (
 const (
 	mgmtContract  = "MGMT"
 	erc20Contract = "ERC20"
+	timeoutWait   = 80 * time.Second
+	retryInterval = 2 * time.Second
 )
 
 type ContractDeployer struct {
@@ -29,14 +32,28 @@ type ContractDeployer struct {
 }
 
 func NewContractDeployer(config *Config) (*ContractDeployer, error) {
-	wallet, err := setupWallet(config)
+	cfgStr, _ := json.MarshalIndent(config, "", "  ")
+	fmt.Printf("Preparing contract deployer with config: %s\n", cfgStr)
+	wal, err := setupWallet(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to setup wallet - %w", err)
 	}
-	client, err := setupClient(config, wallet)
-	if err != nil {
-		return nil, fmt.Errorf("failed to setup client - %w", err)
+
+	var client ethadapter.EthClient
+	startConnectingTime := time.Now()
+	// since the nodes we are connecting to may have only just started, we retry connection until it is successful
+	for client == nil && time.Since(startConnectingTime) < timeoutWait {
+		client, err = setupClient(config, wal)
+		if err == nil {
+			break // success
+		}
+		// if there was an error we'll retry, if we timeout the last seen error will display
+		time.Sleep(retryInterval)
 	}
+	if client == nil {
+		return nil, fmt.Errorf("failed to initialise client connection after retrying for %s, %w", timeoutWait, err)
+	}
+
 	contractCode, err := getContractCode(config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find contract bytecode to deploy - %w", err)
@@ -44,7 +61,7 @@ func NewContractDeployer(config *Config) (*ContractDeployer, error) {
 
 	return &ContractDeployer{
 		client:       client,
-		wallet:       wallet,
+		wallet:       wal,
 		contractCode: contractCode,
 	}, nil
 }
@@ -52,7 +69,7 @@ func NewContractDeployer(config *Config) (*ContractDeployer, error) {
 func (cd *ContractDeployer) Run() error {
 	nonce, err := cd.client.Nonce(cd.wallet.Address())
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to fetch wallet nonce: %w", err)
 	}
 	cd.wallet.SetNonce(nonce)
 
@@ -65,18 +82,18 @@ func (cd *ContractDeployer) Run() error {
 
 	signedTx, err := cd.wallet.SignTransaction(&deployContractTx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to sign contract deploy transaction: %w", err)
 	}
 
 	err = cd.client.SendTransaction(signedTx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to send contract deploy transaction: %w", err)
 	}
 
 	var start time.Time
 	var receipt *types.Receipt
 	var contractAddr *common.Address
-	for start = time.Now(); time.Since(start) < 80*time.Second; time.Sleep(2 * time.Second) {
+	for start = time.Now(); time.Since(start) < timeoutWait; time.Sleep(retryInterval) {
 		receipt, err = cd.client.TransactionReceipt(signedTx.Hash())
 		if err == nil && receipt != nil {
 			if receipt.Status != types.ReceiptStatusSuccessful {
@@ -111,13 +128,12 @@ func setupWallet(cfg *Config) (wallet.Wallet, error) {
 	return wallet.NewInMemoryWalletFromPK(cfg.ChainID, privateKey), nil
 }
 
-func setupClient(cfg *Config, _ wallet.Wallet) (ethadapter.EthClient, error) {
-	// connect to the l1
-	client, err := ethadapter.NewEthClient(cfg.NodeHost, cfg.NodePort, 30*time.Second, common.HexToAddress("0x0"))
-	if err != nil {
-		return nil, err
+func setupClient(cfg *Config, wal wallet.Wallet) (ethadapter.EthClient, error) {
+	if cfg.IsL1Deployment {
+		// return a connection to the l1
+		return ethadapter.NewEthClient(cfg.NodeHost, cfg.NodePort, 30*time.Second, common.HexToAddress("0x0"))
 	}
-	return client, nil
+	return ethadapter.NewObscuroRPCClient(cfg.NodeHost, cfg.NodePort, wal)
 }
 
 func getContractCode(cfg *Config) ([]byte, error) {
